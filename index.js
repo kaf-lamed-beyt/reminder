@@ -6,7 +6,7 @@
 // Webhook handler function
 module.exports = async (app) => {
   app.on("push", async (context) => {
-    const USERNAME = context.payload.installation.account.login;
+    const USERNAME = context.payload.repository.owner.login;
     const REPO_NAME = context.payload.repository.name;
 
     const { data: starredRepos } =
