@@ -43,17 +43,18 @@ module.exports = async (app) => {
         if (latestRelease === "Latest") {
           const newContent = `${content}\n- [${repoLink}](${releasesUrl}): ${latestRelease}`;
 
-          const updatedFile = await context.octokit.repos.createOrUpdateFile({
-            owner: USERNAME,
-            repo: REPO_NAME,
-            path: releasesFile,
-            message: `Add release: ${repoLink} ${latestRelease}`,
-            content: Buffer.from(newContent).toString("base64"),
-            sha: file.data.sha,
-          });
+          const updatedFile =
+            await context.octokit.repos.createOrUpdateFileContents({
+              owner: USERNAME,
+              repo: REPO_NAME,
+              path: releasesFile,
+              message: `Add release: ${repoLink} ${latestRelease}`,
+              content: Buffer.from(newContent).toString("base64"),
+              sha: file.data.sha,
+            });
 
           // Create an issue with a comment mentioning the user when there's a new release
-          const issue = await context.octokit.issues.create({
+          const issue = await context.octokit.issues.createComment({
             owner: USERNAME,
             repo: REPO_NAME,
             title: `New release available: ${repoLink}`,
@@ -70,7 +71,7 @@ module.exports = async (app) => {
       } catch (error) {
         if (error.status === 404) {
           // releases.md file does not exist, create it
-          await context.octokit.repos.createOrUpdateFile({
+          await context.octokit.repos.createOrUpdateFileContents({
             owner: USERNAME,
             repo: REPO_NAME,
             path: releasesFile,
