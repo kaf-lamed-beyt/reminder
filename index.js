@@ -6,12 +6,15 @@
 module.exports = (app) => {
   app.on("release", async (context) => {
     const USERNAME = context.payload.installation.account.login;
-    const REPONAME = context.payload.repository.REPONAME;
+    const REPO_NAME = context.payload.repository.name;
 
-    const { data: starredRepos } = await context.octokit.repos.listStarred();
+    const { data: starredRepos } =
+      await context.octokit.activity.listReposStarredByUser({
+        username: context.payload.installation.account.login,
+      });
+
     const repoLinks = starredRepos.map((repo) => repo.html_url);
 
-    // Scrape the releases pages of your starred repositories
     for (const repoLink of repoLinks) {
       const releasesUrl = `${repoLink}/releases`;
       const res = await context.github.request({
@@ -67,7 +70,7 @@ module.exports = (app) => {
 
       context.octokit.issues.createComment(
         context.issue({
-          body: `Hi @${USERNAME}, a new release (${latestRelease}) is available for the repository ${repoLink}! @username`,
+          body: `Hi @${USERNAME}, a new release (${latestRelease}) is available for the repository ${repoLink}!`,
         })
       );
     }
