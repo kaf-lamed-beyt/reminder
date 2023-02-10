@@ -34,7 +34,7 @@ module.exports = (app) => {
       const releasesFile = "releases.md";
 
       try {
-        const file = await context.github.repos.getContents({
+        const file = await context.octokit.repos.getContent({
           owner: USERNAME,
           repo: REPO_NAME,
           path: releasesFile,
@@ -43,7 +43,7 @@ module.exports = (app) => {
         const content = Buffer.from(file.data.content, "base64").toString();
         const newContent = `${content}\n- [${repoLink}](${releasesUrl}): ${latestRelease}`;
 
-        await context.github.repos.createOrUpdateFile({
+        await context.octokit.repos.createOrUpdateFile({
           owner: USERNAME,
           repo: REPO_NAME,
           path: releasesFile,
@@ -54,7 +54,7 @@ module.exports = (app) => {
       } catch (error) {
         if (error.status === 404) {
           // File does not exist, create it
-          await context.github.repos.createOrUpdateFile({
+          await context.octokit.repos.createOrUpdateFile({
             owner: USERNAME,
             repo: REPO_NAME,
             path: releasesFile,
