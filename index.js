@@ -23,7 +23,7 @@ module.exports = async (app) => {
 
       try {
         // get the releases.md file content
-        const file = await context.octokit.repos.getContents({
+        const file = await context.octokit.repos.getContent({
           owner: USERNAME,
           repo: REPO_NAME,
           path: releasesFile,
