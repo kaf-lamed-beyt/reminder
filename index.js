@@ -41,13 +41,27 @@ module.exports = async (app) => {
 
         if (latestRelease === "Latest") {
           const newContent = `${content}\n- [${repoLink}](${releasesUrl}): ${latestRelease}`;
-          await context.octokit.repos.createOrUpdateFile({
+          const updatedFile = await context.octokit.repos.createOrUpdateFile({
             owner: USERNAME,
             repo: REPO_NAME,
             path: releasesFile,
             message: `Add release: ${repoLink} ${latestRelease}`,
             content: Buffer.from(newContent).toString("base64"),
             sha: file.data.sha,
+          });
+
+          // Create an issue with a comment mentioning the user when there's a new release
+          const issue = await context.octokit.issues.create({
+            owner: USERNAME,
+            repo: REPO_NAME,
+            title: `New release available: ${repoLink}`,
+            body: `A new release (${latestRelease}) is available for the repository ${repoLink}!`,
+          });
+          const comment = await context.octokit.issues.createComment({
+            owner: USERNAME,
+            repo: REPO_NAME,
+            issue_number: issue.data.number,
+            body: `Hi @${USERNAME}, a new release (${latestRelease}) is available for the repository ${repoLink}!`,
           });
         }
       } catch (error) {
@@ -65,13 +79,13 @@ module.exports = async (app) => {
         } else {
           throw error;
         }
-      }
 
-      context.octokit.issues.createComment(
-        context.issue({
-          body: `Hi @${USERNAME}, a new release (${latestRelease}) is available for the repository ${repoLink}!`,
-        })
-      );
+        context.octokit.issues.createComment(
+          context.issue({
+            body: `Hi @${USERNAME}, a new release (${latestRelease}) is available for the repository ${repoLink}!`,
+          })
+        );
+      }
     }
   });
 };
