@@ -16,6 +16,8 @@
     "test": "jest"
   },
   "dependencies": {
+    "@probot/adapter-aws-lambda-serverless": "^3.0.2",
+    "cheerio": "^1.0.0-rc.12",
     "probot": "^12.2.4"
   },
   "devDependencies": {
