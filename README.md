@@ -1,6 +1,6 @@
 # watchTower
 
-> A GitHub App built with [Probot](https://github.com/probot/probot) that get notified about the latest releases from your favorite OSS projects
+> A GitHub App built with [Probot](https://github.com/probot/probot) that gets you notified about the latest releases from your favorite OSS projects
 
 ## Setup
 
