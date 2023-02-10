@@ -3,57 +3,56 @@
  * @param {import('probot').Probot} app
  */
 
-module.exports = (app) => {
-  app.on("release", async (context) => {
+// Webhook handler function
+module.exports = async (app) => {
+  app.on("push", async (context) => {
     const USERNAME = context.payload.installation.account.login;
     const REPO_NAME = context.payload.repository.name;
 
     const { data: starredRepos } =
       await context.octokit.activity.listReposStarredByUser({
-        username: context.payload.installation.account.login,
+        username: USERNAME,
       });
 
     const repoLinks = starredRepos.map((repo) => repo.html_url);
 
+    // loop through each starred repo and update the releases.md file
     for (const repoLink of repoLinks) {
       const releasesUrl = `${repoLink}/releases`;
-      const res = await context.github.request({
-        method: "GET",
-        url: releasesUrl,
-      });
-
-      const $ = cheerio.load(res.data);
-      const latestRelease = $(
-        "a.btn-link.btn-change-status.js-filterable-field"
-      )
-        .first()
-        .text()
-        .trim();
-
-      // Write the new releases information to a file in the repository
       const releasesFile = "releases.md";
 
       try {
-        const file = await context.octokit.repos.getContent({
+        // get the releases.md file content
+        const file = await context.octokit.repos.getContents({
           owner: USERNAME,
           repo: REPO_NAME,
           path: releasesFile,
         });
 
         const content = Buffer.from(file.data.content, "base64").toString();
-        const newContent = `${content}\n- [${repoLink}](${releasesUrl}): ${latestRelease}`;
 
-        await context.octokit.repos.createOrUpdateFile({
-          owner: USERNAME,
-          repo: REPO_NAME,
-          path: releasesFile,
-          message: `Add release: ${repoLink} ${latestRelease}`,
-          content: Buffer.from(newContent).toString("base64"),
-          sha: file.data.sha,
-        });
+        // get the latest release for the repo
+        const response = await axios.get(releasesUrl);
+        const $ = cheerio.load(response.data);
+        const latestRelease = $("span.Label.Label--success.label--large")
+          .first()
+          .text()
+          .trim();
+
+        if (latestRelease === "Latest") {
+          const newContent = `${content}\n- [${repoLink}](${releasesUrl}): ${latestRelease}`;
+          await context.octokit.repos.createOrUpdateFile({
+            owner: USERNAME,
+            repo: REPO_NAME,
+            path: releasesFile,
+            message: `Add release: ${repoLink} ${latestRelease}`,
+            content: Buffer.from(newContent).toString("base64"),
+            sha: file.data.sha,
+          });
+        }
       } catch (error) {
         if (error.status === 404) {
-          // File does not exist, create it
+          // releases.md file does not exist, create it
           await context.octokit.repos.createOrUpdateFile({
             owner: USERNAME,
             repo: REPO_NAME,
