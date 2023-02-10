@@ -20,6 +20,7 @@ module.exports = async (app) => {
     for (const repoLink of repoLinks) {
       const releasesUrl = `${repoLink}/releases`;
       const releasesFile = "releases.md";
+      let latestRelease = "";
 
       try {
         // get the releases.md file content
@@ -34,13 +35,14 @@ module.exports = async (app) => {
         // get the latest release for the repo
         const response = await axios.get(releasesUrl);
         const $ = cheerio.load(response.data);
-        const latestRelease = $("span.Label.Label--success.label--large")
+        latestRelease = $("span.Label.Label--success.label--large")
           .first()
           .text()
           .trim();
 
         if (latestRelease === "Latest") {
           const newContent = `${content}\n- [${repoLink}](${releasesUrl}): ${latestRelease}`;
+
           const updatedFile = await context.octokit.repos.createOrUpdateFile({
             owner: USERNAME,
             repo: REPO_NAME,
@@ -57,7 +59,8 @@ module.exports = async (app) => {
             title: `New release available: ${repoLink}`,
             body: `A new release (${latestRelease}) is available for the repository ${repoLink}!`,
           });
-          const comment = await context.octokit.issues.createComment({
+
+          await context.octokit.issues.createComment({
             owner: USERNAME,
             repo: REPO_NAME,
             issue_number: issue.data.number,
