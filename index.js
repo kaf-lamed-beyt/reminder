@@ -2,6 +2,8 @@
  * This is the main entrypoint to my Probot app
  * @param {import('probot').Probot} app
  */
+const cheerio = require("cheerio");
+const axios = require("axios");
 
 // Webhook handler function
 module.exports = async (app) => {
