@@ -7,8 +7,6 @@ const axios = require("axios");
 
 module.exports = async (app) => {
   app.on("issues.opened", async (context) => {
-    app.log.info(context);
-
     const USERNAME = context.payload.repository.owner.login;
     const REPO_NAME = context.payload.repository.name;
 
