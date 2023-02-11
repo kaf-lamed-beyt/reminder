@@ -5,7 +5,7 @@
 
 // Webhook handler function
 module.exports = async (app) => {
-  app.on("push", async (context) => {
+  app.on("issues.created", async (context) => {
     const USERNAME = context.payload.repository.owner.login;
     const REPO_NAME = context.payload.repository.name;
 
