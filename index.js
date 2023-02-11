@@ -5,7 +5,6 @@
 const cheerio = require("cheerio");
 const axios = require("axios");
 
-// Webhook handler function
 module.exports = async (app) => {
   app.on("issues.created", async (context) => {
     const USERNAME = context.payload.repository.owner.login;
@@ -56,7 +55,7 @@ module.exports = async (app) => {
             });
 
           // Create an issue with a comment mentioning the user when there's a new release
-          const issue = await context.octokit.issues.createComment({
+          const issue = await context.octokit.issues.create({
             owner: USERNAME,
             repo: REPO_NAME,
             title: `New release available: ${repoLink}`,
@@ -86,11 +85,43 @@ module.exports = async (app) => {
           throw error;
         }
 
-        context.octokit.issues.createComment(
-          context.issue({
+        // Check if an issue already exists for the new release
+        let existingIssue = false;
+        const issues = await context.octokit.issues.listForRepo({
+          owner: USERNAME,
+          repo: REPO_NAME,
+          state: "open",
+        });
+        for (const issue of issues.data) {
+          if (issue.title === `New release available: ${repoLink}`) {
+            existingIssue = true;
+            // Create a comment on the existing issue
+            await context.octokit.issues.createComment({
+              owner: USERNAME,
+              repo: REPO_NAME,
+              issue_number: issue.number,
+              body: `Hi @${USERNAME}, a new release (${latestRelease}) is available for the repository ${repoLink}!`,
+            });
+            break;
+          }
+        }
+
+        // If no existing issue was found, create a new one
+        if (!existingIssue) {
+          const issue = await context.octokit.issues.create({
+            owner: USERNAME,
+            repo: REPO_NAME,
+            title: `New release available: ${repoLink}`,
+            body: `A new release (${latestRelease}) is available for the repository ${repoLink}!`,
+          });
+
+          await context.octokit.issues.createComment({
+            owner: USERNAME,
+            repo: REPO_NAME,
+            issue_number: issue.data.number,
             body: `Hi @${USERNAME}, a new release (${latestRelease}) is available for the repository ${repoLink}!`,
-          })
-        );
+          });
+        }
       }
     }
   });

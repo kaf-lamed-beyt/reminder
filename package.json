@@ -1,11 +1,11 @@
 {
-  "name": "watchTower",
+  "name": "watch-tower",
   "version": "1.0.0",
   "private": true,
   "description": "get notified about the latest releases from your favorite OSS projects",
   "author": "Caleb Olojo -- @kaf-lamed-beyt",
   "license": "ISC",
-  "homepage": "https://github.com//",
+  "homepage": "https://github.com/kaf-lamed-beyt/watchTower#readme",
   "keywords": [
     "probot",
     "github",
