@@ -6,7 +6,9 @@ const cheerio = require("cheerio");
 const axios = require("axios");
 
 module.exports = async (app) => {
-  app.on("issues.created", async (context) => {
+  app.on("issues.opened", async (context) => {
+    app.log.info(context);
+
     const USERNAME = context.payload.repository.owner.login;
     const REPO_NAME = context.payload.repository.name;
 
@@ -87,11 +89,13 @@ module.exports = async (app) => {
 
         // Check if an issue already exists for the new release
         let existingIssue = false;
+
         const issues = await context.octokit.issues.listForRepo({
           owner: USERNAME,
           repo: REPO_NAME,
           state: "open",
         });
+
         for (const issue of issues.data) {
           if (issue.title === `New release available: ${repoLink}`) {
             existingIssue = true;
